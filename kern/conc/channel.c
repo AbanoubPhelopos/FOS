@@ -61,9 +61,16 @@ void wakeup_one(struct Channel *chan)
 void wakeup_all(struct Channel *chan)
 {
 	//TODO: [PROJECT'24.MS1 - #12] [4] LOCKS - wakeup_all
-	//COMMENT THE FOLLOWING LINE BEFORE START CODING
-	panic("wakeup_all is not implemented yet");
-	//Your Code is Here...
 
+	acquire_spinlock(&ProcessQueues.qlock);
+
+	uint32 chanSize = chan->queue.size;
+
+	for(int i=0;i<chanSize;i++){
+		struct Env* env = dequeue(&(chan->queue));
+		sched_insert_ready0(env);
+	}
+
+	release_spinlock(&ProcessQueues.qlock);
 }
 
