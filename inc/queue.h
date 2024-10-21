@@ -238,7 +238,7 @@ struct {								\
  * The "prev_next_info" name is the link element as above.
  */
 #define	LIST_INSERT_HEAD(list, elm) do {				\
-	if (elm == NULL) panic("LIST_INSERT_HEAD: element is NULL!");			\
+	if (elm == NULL) panic("LIST_INSERT_HEAD: element is NULL!");		\
 	if ((LIST_NEXT((elm)) = LIST_FIRST((list))) != NULL)	\
 		LIST_PREV(LIST_FIRST((list)))= ((elm));\
 	else	\

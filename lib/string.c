@@ -68,6 +68,7 @@ strcmp(const char *p, const char *q)
 {
 	while (*p && *p == *q)
 		p++, q++;
+
 	return (int) ((unsigned char) *p - (unsigned char) *q);
 }
 

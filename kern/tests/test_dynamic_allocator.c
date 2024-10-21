@@ -40,6 +40,10 @@ void test_initialize_dynamic_allocator()
 	uint32* blkFooter = (uint32*) (KERNEL_HEAP_START +  initAllocatedSpace - 2*sizeof(int));
 	if (*daBeg != 1 || *daEnd != 1 || (*blkHeader != initAllocatedSpace - 2*sizeof(int))|| (*blkFooter != initAllocatedSpace - 2*sizeof(int)))
 	{
+//		cprintf("%d\n",*daBeg);
+//		cprintf("%d\n",*daEnd);
+//		cprintf("%d\n",*blkHeader);
+//		cprintf("%d\n",*blkFooter);
 		panic("Content of header/footer and/or DA begin/end are not set correctly");
 	}
 	if (LIST_SIZE(&freeBlocksList) != 1 || (uint32)LIST_FIRST(&freeBlocksList) != KERNEL_HEAP_START + 2*sizeof(int))
@@ -48,6 +52,20 @@ void test_initialize_dynamic_allocator()
 	}
 
 	cprintf("Congratulations!! test initialize_dynamic_allocator completed successfully.\n");
+//	uint32* va=(uint32*) (KERNEL_HEAP_START+5*sizeof(uint32));
+//	set_block_data(va,16,0);
+//	set_block_data(va+2*16,16,0);
+//	set_block_data(va+16,16,0);
+//
+//
+//	struct BlockElement *i;
+//	cprintf("kernel %u\n",KERNEL_HEAP_START+5*sizeof(uint32));
+//	LIST_FOREACH(i,&freeBlocksList)
+//	{
+//		cprintf("address : %u\n",i);
+//		cprintf("%d\n",get_block_size(i));
+//			cprintf("%d\n",is_free_block(i));
+//	}
 }
 
 #define numOfAllocs 7
@@ -98,7 +116,9 @@ int test_initial_alloc(int ALLOC_STRATEGY)
 	if (is_correct)
 	{
 		eval += 5;
+		cprintf("evaluation : %d\n",eval); //mike
 	}
+
 	//====================================================================//
 	/*INITIAL ALLOC Scenario 2: Try to allocate set of blocks with different sizes*/
 	cprintf("	2: Try to allocate set of blocks with different sizes [all should fit]\n\n") ;
@@ -116,6 +136,7 @@ int test_initial_alloc(int ALLOC_STRATEGY)
 		is_correct = 0;
 		cprintf("alloc_block_xx test is not configured correctly. Consider updating the initial allocated space OR the required allocations\n");
 	}
+	//cprintf("passed");//mike
 	int idx = 0;
 	void* curVA = (void*) KERNEL_HEAP_START + sizeof(int) ; //just after the "DA Begin" block
 	uint32 actualSize;
@@ -123,6 +144,7 @@ int test_initial_alloc(int ALLOC_STRATEGY)
 	{
 		for (int j = 0; j < allocCntPerSize; ++j)
 		{
+
 			actualSize = allocSizes[i] - sizeOfMetaData;
 			va = startVAs[idx] = alloc_block(actualSize, ALLOC_STRATEGY);
 			midVAs[idx] = va + actualSize/2 ;
@@ -136,18 +158,22 @@ int test_initial_alloc(int ALLOC_STRATEGY)
 					cprintf("alloc_block_xx #3.%d: WRONG ALLOC - alloc_block_xx return wrong address. Expected %x, Actual %x\n", idx, curVA + sizeOfMetaData ,va);
 				}
 			}
+			//cprintf("passed2");//mike
 			curVA += allocSizes[i] ;
 			*(startVAs[idx]) = idx ;
 			*(midVAs[idx]) = idx ;
 			*(endVAs[idx]) = idx ;
 			idx++;
+
 		}
 		//if (is_correct == 0)
 		//break;
+
 	}
 	if (is_correct)
 	{
 		eval += 20;
+		cprintf("evaluation : %d\n",eval); //mike
 	}
 	//====================================================================//
 	/*INITIAL ALLOC Scenario 3: Try to allocate a block with a size equal to the size of the first existing free block*/
@@ -170,6 +196,7 @@ int test_initial_alloc(int ALLOC_STRATEGY)
 	if (is_correct)
 	{
 		eval += 5;
+		cprintf("evaluation : %d\n",eval); //mike
 	}
 	//====================================================================//
 	/*INITIAL ALLOC Scenario 4: Check stored data inside each allocated block*/
@@ -188,6 +215,7 @@ int test_initial_alloc(int ALLOC_STRATEGY)
 	if (is_correct)
 	{
 		eval += 10;
+		cprintf("evaluation : %d\n",eval); //mike
 	}
 	return eval;
 }

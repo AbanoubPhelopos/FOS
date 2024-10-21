@@ -4,6 +4,7 @@
 #include <inc/types.h>
 #include <inc/environment_definitions.h>
 
+
 /*Data*/
 /*Max Size for the Dynamic Allocator*/
 #define DYN_ALLOC_MAX_SIZE (32<<20) 		//32 MB
@@ -29,7 +30,9 @@ enum
 //TODO: [PROJECT'24.MS1 - #00 GIVENS] [3] DYNAMIC ALLOCATOR - data structures
 struct BlockElement
 {
-	LIST_ENTRY(BlockElement) prev_next_info;	/* linked list links */
+	LIST_ENTRY(BlockElement) prev_next_info; /* linked list links */
+	//uint32 header_block;
+	//uint32 footer_block;
 };// __attribute__((packed))
 
 LIST_HEAD(MemBlock_LIST, BlockElement);
