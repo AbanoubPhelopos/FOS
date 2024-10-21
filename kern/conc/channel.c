@@ -29,9 +29,27 @@ void init_channel(struct Channel *chan, char *name)
 void sleep(struct Channel *chan, struct spinlock* lk)
 {
 	//TODO: [PROJECT'24.MS1 - #10] [4] LOCKS - sleep
-	//COMMENT THE FOLLOWING LINE BEFORE START CODING
-	panic("sleep is not implemented yet");
-	//Your Code is Here...
+		//COMMENT THE FOLLOWING LINE BEFORE START CODING
+		//panic("sleep is not implemented yet");
+		//Your Code is Here...
+
+
+		struct Env* cur_env = get_cpu_proc();
+
+
+		acquire_spinlock(&ProcessQueues.qlock);
+		release_spinlock(lk);
+
+
+		cur_env->env_status=ENV_BLOCKED;
+		enqueue(&chan->queue, cur_env);
+
+		sched();
+
+		release_spinlock(&ProcessQueues.qlock);
+
+
+		acquire_spinlock(lk);
 
 }
 

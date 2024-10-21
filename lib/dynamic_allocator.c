@@ -227,9 +227,92 @@ void free_block(void *va)
 void *realloc_block_FF(void* va, uint32 new_size)
 {
 	//TODO: [PROJECT'24.MS1 - #08] [3] DYNAMIC ALLOCATOR - realloc_block_FF
-	//COMMENT THE FOLLOWING LINE BEFORE START CODING
-	panic("realloc_block_FF is not implemented yet");
-	//Your Code is Here...
+			//COMMENT THE FOLLOWING LINE BEFORE START CODING
+			//panic("realloc_block_FF is not implemented yet");
+			//Your Code is Here...
+
+			if(new_size==0){
+				free_block(va);
+				return (void *)NULL;
+			}
+			else if(va==(void*)NULL && new_size !=0){
+				return alloc_block_FF(new_size);
+			}
+			else if(va==(void*)NULL && new_size ==0){
+				return (void *)NULL;
+			}
+			//check in el size +8 is even
+			if (new_size%2!=0) // QQQQQ return null or make it even
+				new_size++;
+
+			uint32 *header_next= (uint32 *)va+new_size+1;//pointer to the begining of the header of the next block
+
+			if (new_size+8==get_block_size(va))
+			{
+				cprintf("first test done");
+				return va;
+			}
+			// in case new size > old size
+			else if(new_size+8>get_block_size(va))
+			{
+				// what about next block
+				int8 free_or_not=is_free_block((void *)(header_next+1));
+				if(free_or_not==1)
+				{// allocated //the next block is not free
+					free_block(va);
+					cprintf("2 test done");
+					return alloc_block_FF(new_size);
+				}
+				else
+				{ // free space after the block
+					if(get_block_size((void *)(header_next+1))<(new_size+8)-get_block_size(va)){ // allow space in the next block
+						free_block(va);
+						cprintf("3 test done");
+						return alloc_block_FF(new_size);
+					}
+					else if(get_block_size((void *)(header_next+1))-((new_size+8)-get_block_size(va))<16)
+					{//update el size and take all the block // will take all the block
+						set_block_data(va,(get_block_size(va)+get_block_size((void *)(header_next+1))),1);
+						cprintf("4 test done");
+						return va;
+					}
+					else
+					{ // update el size
+						//uint32 *footer=header_next-1;
+						uint32 size_of_next_block=get_block_size(header_next+1);
+						*header_next=((new_size+8)-get_block_size(va));// not logical
+						header_next=header_next-1;
+						//footer=((new_size+8)-get_block_size(va));
+						set_block_data(va,new_size+8,1); // iam not sure
+						set_block_data(header_next+1,(size_of_next_block-((new_size+8)-get_block_size(va))),0);
+						cprintf("5 test done");
+						return va;
+					}
+				}
+
+			}
+			else
+			{// if new size < size
+				uint32 size_of_block=get_block_size(va);
+				uint32 size_of_new_block=new_size+8;
+				if (size_of_block-size_of_new_block>=16)
+				{
+					set_block_data(va,size_of_new_block,1);
+					uint32 *header_next= (uint32 *)va+new_size+1;
+					set_block_data(header_next+1,size_of_block-size_of_new_block,0);
+					cprintf("6 test done");
+					return va;
+					//set the next block
+				}
+				else
+				{
+					free_block(va);
+					cprintf("7 test done");
+					return alloc_block_FF(new_size);
+				}
+				return (void *)NULL;
+			}
+			return (void *)NULL;
 }
 
 /*********************************************************************************************/

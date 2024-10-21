@@ -34,8 +34,22 @@ void acquire_sleeplock(struct sleeplock *lk)
 {
 	//TODO: [PROJECT'24.MS1 - #13] [4] LOCKS - acquire_sleeplock
 	//COMMENT THE FOLLOWING LINE BEFORE START CODING
-	panic("acquire_sleeplock is not implemented yet");
+	//panic("acquire_sleeplock is not implemented yet");
 	//Your Code is Here...
+	if(holding_sleeplock())
+		panic("acquire_spinlock: lock \"%s\" is already held by the same CPU.", lk->name);
+
+	acquire_spinlock(&lk->lk);
+		while(lk->locked==0)
+		{
+
+			//put thread in waiting queue
+			sleep(&lk->chan,&lk->lk);
+			//
+			release_spinlock(&lk->lk);
+		}
+		lk->locked=0;
+		release_spinlock(&lk->lk);
 
 }
 
