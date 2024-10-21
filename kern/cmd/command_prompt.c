@@ -456,13 +456,65 @@ int execute_command(char *command_string)
 int process_command(int number_of_arguments, char** arguments)
 {
 	//TODO: [PROJECT'24.MS1 - #01] [1] PLAY WITH CODE! - process_command
-
-	for (int i = 0; i < NUM_OF_COMMANDS; i++)
+	struct Command *element;
+	LIST_FOREACH(element, &(foundCommands))
 	{
-		if (strcmp(arguments[0], commands[i].name) == 0)
+		struct Command *nextElement = LIST_NEXT(element);
+		LIST_REMOVE(&foundCommands, element);
+		element = nextElement;
+	}
+
+	for (int i = 0; i < NUM_OF_COMMANDS; i++) {
+
+		struct Command *element;
+		LIST_FOREACH(element, &(foundCommands))
 		{
-			return i;
+			struct Command *nextElement = LIST_NEXT(element);
+			element = nextElement;
 		}
+
+		if (strcmp(arguments[0], commands[i].name) == 0) // found the exact command
+				{
+			int size = 0;
+			while (arguments[size] != NULL) {
+				size++;
+			}
+			size--;
+
+			if (size == commands[i].num_of_args
+					|| commands[i].num_of_args == -1) {
+				return i;
+			} else {
+				LIST_INSERT_TAIL(&foundCommands, &commands[i]);
+				return CMD_INV_NUM_ARGS;
+			}
+		}
+	}
+
+	for (int i = 0; i < NUM_OF_COMMANDS; i++) {
+
+		int GivenCommandSize = strlen(*arguments);
+		char* string = commands[i].name;
+		bool flg = 1;
+		for (int j = 0; j < GivenCommandSize; j++) {
+			if (*strfind(string, arguments[0][j]) == '\0') {
+				flg = 0;
+				break;
+			}
+			string = strfind(string, arguments[0][j]);
+			string = string + 1;
+		}
+
+		if (flg) {
+			LIST_INSERT_HEAD(&foundCommands, &commands[i]);
+		}
+	}
+
+	if (LIST_SIZE(&foundCommands) == 0) {
+		return CMD_INVALID;
+	} else {
+		return CMD_MATCHED;
 	}
 	return CMD_INVALID;
 }
+
