@@ -199,9 +199,7 @@ void *alloc_block_BF(uint32 size) {
 
 		LIST_REMOVE(&freeBlocksList, best_fit);
 		set_block_data(best_fit, size + 8, 1);
-		cprintf("best_fit %x\n",best_fit);
 		set_block_data(newelement, best_fit_size - size_with_meta ,0);
-		cprintf("newelement %x\n",newelement);
 
 	} else {
 
