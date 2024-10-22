@@ -103,39 +103,37 @@ void initialize_dynamic_allocator(uint32 daStart, uint32 initSizeOfAllocatedSpac
 
 	//TODO: [PROJECT'24.MS1 - #04] [3] DYNAMIC ALLOCATOR - initialize_dynamic_allocator
 	//COMMENT THE FOLLOWING LINE BEFORE START CODING
-	//panic("initialize_dynamic_allocator is not implemented yet");
-	//Your Code is Here...
-
 }
 //==================================
 // [2] SET BLOCK HEADER & FOOTER:
 //==================================
 void set_block_data(void* va, uint32 totalSize, bool isAllocated)
 {
-	//TODO: [PROJECT'24.MS1 - #05] [3] DYNAMIC ALLOCATOR - set_block_data
-	//COMMENT THE FOLLOWING LINE BEFORE START CODING
-	//panic("set_block_data is not implemented yet");
-	//Your Code is Here...
+    //TODO: [PROJECT'24.MS1 - #05] [3] DYNAMIC ALLOCATOR - set_block_data
+    //COMMENT THE FOLLOWING LINE BEFORE START CODING
+    //panic("set_block_data is not implemented yet");
+    //Your Code is Here...
 }
 
 
 //=========================================
 // [3] ALLOCATE BLOCK BY FIRST FIT:
 //=========================================
-void *alloc_block_FF(uint32 size)
-{
+void *alloc_block_FF(uint32 size) {
 	//==================================================================================
 	//DON'T CHANGE THESE LINES==========================================================
 	//==================================================================================
 	{
-		if (size % 2 != 0) size++;	//ensure that the size is even (to use LSB as allocation flag)
+		if (size % 2 != 0)
+			size++;	//ensure that the size is even (to use LSB as allocation flag)
 		if (size < DYN_ALLOC_MIN_BLOCK_SIZE)
-			size = DYN_ALLOC_MIN_BLOCK_SIZE ;
-		if (!is_initialized)
-		{
-			uint32 required_size = size + 2*sizeof(int) /*header & footer*/ + 2*sizeof(int) /*da begin & end*/ ;
-			uint32 da_start = (uint32)sbrk(ROUNDUP(required_size, PAGE_SIZE)/PAGE_SIZE);
-			uint32 da_break = (uint32)sbrk(0);
+			size = DYN_ALLOC_MIN_BLOCK_SIZE;
+		if (!is_initialized) {
+			uint32 required_size = size + 2 * sizeof(int) /*header & footer*/
+					+ 2 * sizeof(int) /*da begin & end*/;
+			uint32 da_start = (uint32) sbrk(
+					ROUNDUP(required_size, PAGE_SIZE) / PAGE_SIZE);
+			uint32 da_break = (uint32) sbrk(0);
 			initialize_dynamic_allocator(da_start, da_break - da_start);
 		}
 	}
@@ -144,9 +142,8 @@ void *alloc_block_FF(uint32 size)
 
 	//TODO: [PROJECT'24.MS1 - #06] [3] DYNAMIC ALLOCATOR - alloc_block_FF
 	//COMMENT THE FOLLOWING LINE BEFORE START CODING
-	panic("alloc_block_FF is not implemented yet");
+	//panic("alloc_block_FF is not implemented yet");
 	//Your Code is Here...
-
 }
 //=========================================
 // [4] ALLOCATE BLOCK BY BEST FIT:
@@ -159,55 +156,60 @@ void *alloc_block_BF(uint32 size) {
 
 	{
 		if (size % 2 != 0)
-			size++;	//ensure that the size is even (to use LSB as allocation flag)
+			size++;
 		if (size < DYN_ALLOC_MIN_BLOCK_SIZE)
 			size = DYN_ALLOC_MIN_BLOCK_SIZE;
 		if (!is_initialized) {
 			uint32 required_size = size + 2 * sizeof(int) /*header & footer*/
-			+ 2 * sizeof(int) /*da begin & end*/;
+					+ 2 * sizeof(int) /*da begin & end*/;
 			uint32 da_start = (uint32) sbrk(
-			ROUNDUP(required_size, PAGE_SIZE) / PAGE_SIZE);
+					ROUNDUP(required_size, PAGE_SIZE) / PAGE_SIZE);
 			uint32 da_break = (uint32) sbrk(0);
 			initialize_dynamic_allocator(da_start, da_break - da_start);
 		}
 	}
 
 	struct BlockElement *best_fit = NULL;
-		uint32 best_fit_size = 0xffffffff;
-		struct BlockElement *current = LIST_FIRST(&freeBlocksList);
+	uint32 best_fit_size = 0xffffffff;
 
-		while (current != NULL) {
-			uint32 current_size = get_block_size(current);
-			if (is_free_block(current) && current_size >= size + 2 * sizeof(int)) {
-				if (current_size < best_fit_size) {
-					best_fit = current;
-					best_fit_size = current_size;
-				}
+	struct BlockElement *it;
+
+	uint32 meta_size = 2 * sizeof(uint32);
+	uint32 size_with_meta = (size + meta_size);
+
+	LIST_FOREACH(it, &freeBlocksList)
+	{
+		uint32 current_size = get_block_size(it);
+		if (current_size >= size_with_meta) {
+			if (current_size < best_fit_size) {
+				best_fit = it;
+				best_fit_size = current_size;
 			}
-			current = LIST_NEXT(current);
 		}
+	}
 
-		if (best_fit == NULL) {
-			return sbrk(0);
-		}
+	if (best_fit == NULL) {
+		return sbrk(0);
+	}
 
-		if (best_fit_size - (size + 2 * sizeof(uint32)) >= 16) {
+	if (best_fit_size - size_with_meta >= 16) {
 
-			struct BlockElement *newelement =
-					(struct BlockElement*) ((uint8*) best_fit + size
-							+ 2 * sizeof(uint32));
-			LIST_REMOVE(&freeBlocksList, best_fit);
-			set_block_data(best_fit, size, 1);
-			set_block_data(newelement,
-					best_fit_size - (size + 2 * sizeof(uint32)), 0);
+		struct BlockElement *newelement =
+					(struct BlockElement*) ((uint8*) best_fit + size_with_meta);
 
-		} else if (best_fit_size - (size + 2 * sizeof(uint32)) < 16) {
+		LIST_REMOVE(&freeBlocksList, best_fit);
+		set_block_data(best_fit, size + 8, 1);
+		cprintf("best_fit %x\n",best_fit);
+		set_block_data(newelement, best_fit_size - size_with_meta ,0);
+		cprintf("newelement %x\n",newelement);
 
-			LIST_REMOVE(&freeBlocksList, best_fit);
-			set_block_data(best_fit, best_fit_size, 1);
-		}
+	} else {
 
-		return best_fit;
+		LIST_REMOVE(&freeBlocksList, best_fit);
+		set_block_data(best_fit, best_fit_size , 1);
+	}
+
+	return (void *) best_fit;
 }
 
 //===================================================
