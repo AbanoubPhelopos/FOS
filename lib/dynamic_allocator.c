@@ -89,7 +89,7 @@ bool is_initialized = 0;
 void initialize_dynamic_allocator(uint32 daStart, uint32 initSizeOfAllocatedSpace)
 {
 	//==================================================================================
-	//DON'T CHANGE THESE LINES==========================================================
+	//DON'T CHANGE THESE LINES=======================================================
 	//==================================================================================
 	{
 		if (initSizeOfAllocatedSpace % 2 != 0) initSizeOfAllocatedSpace++; //ensure it's multiple of 2
@@ -145,17 +145,20 @@ void set_block_data(void* va, uint32 totalSize, bool isAllocated)
 
 
 	uint32* header=(uint32*)(va-sizeof(uint32));
-	uint32* footer=(uint32*)(va+totalSize-sizeof(uint32));
-	*header=totalSize;
-	*footer=totalSize;
+	uint32* footer=(uint32*)(va+totalSize-2*sizeof(uint32));
+	//*header=totalSize;
+	//*footer=totalSize;
+	//cprintf("Setting block: va = %p, header = %p, footer = %p, totalSize = %d\n", va, header, footer, totalSize);
 
-	if (isAllocated==1)
-	{
-		*header |= 0x1;
-	}
-	else
-	{
-		*header &= ~0x1;
+	  if (isAllocated == 1) {
+	        *header = totalSize | 0x1;
+	        *footer = totalSize | 0x1;
+	    } else {
+	        *header = totalSize & ~0x1;
+	        *footer = totalSize & ~0x1;
+
+       // cprintf("Header set: %d, Footer set: %d\n", *header, *footer);
+
 		struct BlockElement *s;//itr
 		struct BlockElement *element=(struct BlockElement*)va;
 		struct BlockElement *maxadress=NULL;
@@ -179,6 +182,7 @@ void set_block_data(void* va, uint32 totalSize, bool isAllocated)
 	}
 
 }
+
 
 //=========================================
 // [3] ALLOCATE BLOCK BY FIRST FIT:
@@ -209,42 +213,35 @@ void *alloc_block_FF(uint32 size)
 	//Your Code is Here...
 
 	struct BlockElement *element;
-    LIST_FOREACH(element,&freeBlocksList)
+	LIST_FOREACH(element,&freeBlocksList)
 	{
-    	uint32 free_block_size=get_block_size(element);
-    	//cprintf("%d\n",free_block_size);
-        if(size+8<=free_block_size)
-        {
-        	if(free_block_size-(size+2*sizeof(uint32))>=16)
-        	{
+	uint32 free_block_size = get_block_size(element);
+	//cprintf("%d\n",free_block_size);
+	if (size + 8 <= free_block_size)
+	{
+	if (free_block_size - (size + 2 * sizeof(uint32)) >= 16) {
 
-        	  struct BlockElement *newelement=(struct BlockElement*)((uint8*)element+size+2*sizeof(uint32));
-        	  LIST_REMOVE(&freeBlocksList,element);
-        	  set_block_data(element,size,1);
-        	  set_block_data(newelement,free_block_size-(size+2*sizeof(uint32)),0);
+	struct BlockElement *newelement = (struct BlockElement*) ((uint8*) element + size + 2 * sizeof(uint32));
+	LIST_REMOVE(&freeBlocksList, element);
+	set_block_data(element, size + 8, 1);
+	set_block_data(newelement, free_block_size - (size + 2 * sizeof(uint32)), 0);
+	return element;
+	}
+	else if (free_block_size - (size + 2 * sizeof(uint32)) < 16) {
+
+	LIST_REMOVE(&freeBlocksList, element);
+	set_block_data(element, free_block_size, 1);
+	return element;
+	}
+	} else if (size == 0) {
+	return sbrk(0);
+
+	}
+	}
 
 
-        	  return element;
-        	}
-        	else if (free_block_size-(size+2*sizeof(uint32))<16)
-            {
-
-				LIST_REMOVE(&freeBlocksList,element);
-        		set_block_data(element,free_block_size,1);
-        		 return element;
-        	}
-        }
-        else if(size==0)
-        {
-        	return sbrk(0);
-
-        }
-        else
-        	return NULL;
-      }
-return NULL;
-      }
-
+	return NULL;
+}
 
 
 
